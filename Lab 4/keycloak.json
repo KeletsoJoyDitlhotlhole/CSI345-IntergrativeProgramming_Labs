@@ -1,0 +1,9 @@
+{
+    "realm": "csi345labs",
+    "auth-server-url": "https://lemur-14.cloud-iam.com/auth/",
+    "ssl-required": "external",
+    "resource": "202002023",
+    "public-client": true,
+    "confidential-port": 0
+  }
+  
