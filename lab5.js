@@ -34,14 +34,26 @@ const config = {
     connectString: "10.0.18.2:1521/orcl"
 }
 
+/**
+ * FOR POSTMAN
+ * username: keletsojoy
+ * password:password
+ * client_id: 202002023
+ * client_secret:3ESsFXkFZPY983tkDcC7mEavyK0Qexbp
+ * grant_type:client_credentials
+ * /
 
+/**
+ * GET THE TOKEN AT THE TOKEN AND PASTE IT AS A BEARER TOKEN FOR AUTHORIZATION.
+ * ALL ENDPOINTS USE A BEARER TOKEN
+ */
 
 /***
  * GET ENDPOINTS
  **/
 
 //get /users-returns a list of all users
-app.get('/users',  keycloak.protect('user'),async (req, res) => {
+app.get('/users',  keycloak.protect('Administrator'),async (req, res) => {
     let conn;
     try{
         conn = await oracledb.getConnection(config);
@@ -181,9 +193,9 @@ app.get('/userAssignments', async (req, res) => {
  */
 
 //post /addpublications-adds new publications
-app.post('/addpublications', async(req,res)=>{
-
-    try{
+app.post('/addpublications', async (req, res) => {
+    let conn;
+    try {
         conn = await oracledb.getConnection(config);
 
         const newpubid = req.body.newpubid;
@@ -193,92 +205,80 @@ app.post('/addpublications', async(req,res)=>{
         const newdatereviewed = req.body.newdatereviewed;
         const newdateapproved = req.body.newdateapproved;
 
-        const sqlQuery = "INSERT INTO UserAssignment(pubid,title,status_,datecreated,datereviewed,dateapproved) VALUES (:newpubid,:newtitle,:newstatus,:newdatecreated,:newdatereviewed,:newdateapproved)";
+        const sqlQuery = "INSERT INTO UserAssignment(pubid, title, status_, datecreated, datereviewed, dateapproved) VALUES (:newpubid, :newtitle, :newstatus, :newdatecreated, :newdatereviewed, :newdateapproved)";
 
-        const result = await conn.execute(sqlQuery, [newpubid,newtitle,newstatus,newdatecreated,newdatereviewed,newdateapproved], { autoCommit: true });
+        const result = await conn.execute(sqlQuery, [newpubid, newtitle, newstatus, newdatecreated, newdatereviewed, newdateapproved], { autoCommit: true });
+
         console.log(result);
 
-
-        console.log(results);
-
-        res.send("Publication added successfully!\n" + result.rows + "\n" + results.rows);
-
-        
-
-    }catch(err){
+        res.send("Publication added successfully!\n" + result.rows);
+    } catch (err) {
         console.error(err);
-        
-    }finally{
-        if(conn){
+        res.status(500).send("Error: Unable to add publication.");
+    } finally {
+        if (conn) {
             await conn.close();
         }
     }
+});
 
-})
 
 
 //post /assignuser-assigns a publication to a user
-app.post('/assignuser', async(req,res)=>{
-
-    try{
+app.post('/assignuser', async (req, res) => {
+    let conn;
+    try {
         conn = await oracledb.getConnection(config);
 
         const newUserid = req.body.newUserid;
         const newpubid = req.body.newpubid;
         const newcreatedby = req.body.newcreatedby;
 
-        const sqlQuery = "INSERT INTO UserAssignment (userid,pubid,createdby) VALUES (:newUserid,:newpubid,:newcreatedby)";
+        const sqlQuery = "INSERT INTO UserAssignment (userid, pubid, createdby) VALUES (:newUserid, :newpubid, :newcreatedby)";
 
-        const result = await conn.execute(sqlQuery, [newUserid,newpubid,newcreatedby], { autoCommit: true });
+        const result = await conn.execute(sqlQuery, [newUserid, newpubid, newcreatedby], { autoCommit: true });
+
         console.log(result);
 
-
-        console.log(results);
-
-        res.send("Publication assigned a User successfully!\n" + result.rows + "\n" + results.rows);
-
-    }catch(err){
+        res.send("Publication assigned a User successfully!\n" + result.rows);
+    } catch (err) {
         console.error(err);
-        
-    }finally{
-        if(conn){
+        res.status(500).send("Error: Unable to assign user to publication.");
+    } finally {
+        if (conn) {
             await conn.close();
         }
     }
+});
 
-})
 
 
 //post /adduser-adds a new user
-app.post('/adduser', async(req,res)=>{
-
-    try{
+app.post('/adduser',keycloak.protect('Administrator'), async (req, res) => {
+    let conn;
+    try {
         conn = await oracledb.getConnection(config);
 
         const newUserid = req.body.newUserid;
         const newfirstname = req.body.newfirstname;
         const newsurname = req.body.newsurname;
 
-        const sqlQuery = "INSERT INTO User_(userid,firstname,surname) VALUES (:newUserid,:newfirstname,:newsurname)";
+        const sqlQuery = "INSERT INTO User_(userid, firstname, surname) VALUES (:newUserid, :newfirstname, :newsurname)";
 
-        const result = await conn.execute(sqlQuery, [newUserid,newfirstname,newsurname], { autoCommit: true });
+        const result = await conn.execute(sqlQuery, [newUserid, newfirstname, newsurname], { autoCommit: true });
+
         console.log(result);
 
-
-        console.log(results);
-
-        res.send("User successfully added!\n" + result.rows + "\n" + results.rows);
-
-    }catch(err){
+        res.send("User successfully added!\n" + result.rows);
+    } catch (err) {
         console.error(err);
-        
-    }finally{
-        if(conn){
+        res.status(500).send("Error: Unable to add user.");
+    } finally {
+        if (conn) {
             await conn.close();
         }
     }
-
-})
+});
 
 
 /**
@@ -286,7 +286,7 @@ app.post('/adduser', async(req,res)=>{
  */
 
 //put /changeStatus-edits the status of the publication
-app.put('/changeStatus', async(req,res)=>{
+app.put('/changeStatus',keycloak.protect('Administrator'),async(req,res)=>{
 
     try{
         conn= await oracledb.getConnection(config);
@@ -316,7 +316,7 @@ app.put('/changeStatus', async(req,res)=>{
 
 
 //put /editUser-can edit the profile of the user e.g. correcting names
- app.put('/editUser', async(req,res)=>{ //NEEDS ATTENTION
+ app.put('/editUser',keycloak.protect('Administrator'), async(req,res)=>{ //NEEDS ATTENTION
 
     try{
         conn= await oracledb.getConnection(config);
@@ -335,7 +335,6 @@ app.put('/changeStatus', async(req,res)=>{
             const result = await conn.execute(sqlQuery, [surname, userid], {autoCommit: true});
             res.send(result.rows + "\n Surname successfully changed!");
         }
-
     }catch(err){
         console.error(err);
         
@@ -349,7 +348,7 @@ app.put('/changeStatus', async(req,res)=>{
 
 
 //put /editUserAssignment-can change who was assigned a publication
-app.put('/editUserAssignment', async(req,res)=>{
+app.put('/editUserAssignment', keycloak.protect('Administrator'),async(req,res)=>{
 
     try{
         conn= await oracledb.getConnection(config);
