@@ -1,0 +1,9 @@
+{
+    "realm": "Ditlhotlhole",
+    "auth-server-url": 	"http://10.0.39.71:8080/realms/Ditlhotlhole/202002023/",
+    "ssl-required": "external",
+    "resource": "202002023",
+    "public-client": true,
+    "confidential-port": 0
+  }
+  
